@@ -159,12 +159,12 @@
     - Type git merge temporary_branch to incorporate all changes from your local temporary_branch (in this case, just the modified README.md) into your local master branch.
 
 14, Update the remote repository
-
     - In your terminal/command window, type git status to see that there are no changed files that you need to stage or commit and to confirm that you are on the master branch.
     - Type git push to update the remote copy of master branch with any changes from your local copy.
     - Navigate back to GitLab.com and view README.md in your project's master branch to view the changes.
 
 ## LAB 3: USING GITLAB ISSUES TO PUSH CODE
+
 1. Create a new project and issue
 
     - Navigate to your group, click the New project button, click Create blank project, and name your project Second Project.
