@@ -1,0 +1,1 @@
+sed -Ei 's|http(://sistema.hom.mcom.gov.br)|https\1|g' *
