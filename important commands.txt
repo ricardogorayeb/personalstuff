@@ -1,1 +1,4 @@
 sed -Ei 's|http(://sistema.hom.mcom.gov.br)|https\1|g' *
+
+ldapsearch -H ldap://mcom.gov.br:389/ -x -W -D "MCOM\svc_bind_sistemas" -b "OU=MCOM,dc=mcom,dc=gov,dc=br" "(sAMAccountName=jair.fernand
+es)"
