@@ -1,0 +1,8 @@
+<%- load_hosts.each_record do |host| -%>
+<%-   report_row(
+        'Name': host.name,
+        'OS': host.operatingsystem,
+        'Packages': host.facts_hash['os_patching::package_updates']
+      ) -%>
+<%- end -%>
+<%= report_render -%>
