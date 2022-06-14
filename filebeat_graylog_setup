@@ -1,0 +1,21 @@
+# Needed for Graylog
+fields_under_root: true
+fields.collector_node_id: ${sidecar.nodeName}
+fields.source: ${sidecar.nodeName}
+fields.gl2_source_collector: ${sidecar.nodeId}
+
+filebeat.inputs:
+- input_type: log
+  paths:
+    - /var/log/*.log
+#    - /var/log/graylog-sidecar/sidecar.log
+#    - /var/log/zabbix/zabbix_agentd.log
+#    - /var/log/filebeat/*.ndjson
+  type: log
+output.logstash:
+   hosts: ["log.mcom.gov.br:5044"]
+path:
+  data: /var/lib/graylog-sidecar/collectors/filebeat/data
+  logs: /var/lib/graylog-sidecar/collectors/filebeat/log
+
+  
