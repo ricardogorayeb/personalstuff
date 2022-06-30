@@ -1,0 +1,77 @@
+version: '3'
+
+services:
+        zabbix-server:
+                restart: always
+                image: zabbix/zabbix-server-mysql:alpine-5.4-latest
+                ports:
+                - "10051:10051"
+                - "10052:10052"
+                - "161:161"
+                - "162:162"
+                volumes:
+                        - /usr/share/snmp/mibs/:/var/lib/zabbix/mibs/:ro
+                        -  /var/log/snmptrap/snmptrap.log:/var/log/snmptrap/snmptrap.log:rw 
+                environment:
+                        ZBX_HOSTNAME: zabbix-server
+                        #ZBX_LISTENIP: 172.20.5.144
+                        ZBX_STARTPOLLERS: 60
+                        ZBX_IPMIPOLLERS: 20
+                        ZBX_STARTPOLLERSUNREACHABLE: 20
+                        ZBX_STARTTRAPPERS: 50
+                        ZBX_STARTPINGERS: 40
+                        ZBX_STARTDISCOVERERS: 40
+                        #ZBX_JAVAGATEWAY: 172.20.5.144
+                        ZBX_JAVAGATEWAYPORT: 10052
+                        DB_SERVER_HOST: 172.20.5.144 
+                        ZBX_STARTTRAPPERS: 5
+                        ZBX_STARTDBSYNCERS: 10
+                        ZBX_CACHESIZE: 1G
+                        ZBX_CACHEUPDATEFREQUENCY: 60
+                        ZBX_HISTORYCACHESIZE: 512M
+                        ZBX_HISTORYINDEXCACHESIZE: 512M
+                        ZBX_DEBUGLEVEL: 3
+                        MYSQL_USER: root
+                        MYSQL_PASSWORD: microlog
+        
+        zabbix-frontend:
+                restart: always
+                image: zabbix/zabbix-web-apache-mysql:latest
+                volumes:
+                        - /etc/apache2/conf-enabled/zabbix-new.conf:/etc/zabbix/apache.conf:rw
+                        - /var/www/html/wpad.dat:/usr/share/zabbix/wpad.dat:ro
+                        - /var/www/html/wpad.dat:/usr/share/zabbix/proxy.pac:ro
+                ports:
+                        - "80:8080"
+                links:
+                        - zabbix-server:zabbix-server
+                environment:
+                        DB_SERVER_HOST: 172.20.5.144
+                        MYSQL_USER: root
+                        MYSQL_PASSWORD: microlog
+                        #ZBX_SERVER_HOST: 172.20.5.144
+                        PHP_TZ: America/Manaus
+                        ZBX_SERVER_NAME: "Zabbix Docker CRMN"
+ 
+        zabbix-agent:
+                image: zabbix/zabbix-agent:alpine-5.4-latest
+                ports:
+                         - "10050:10050"
+                links:
+                        - zabbix-server:zabbix-server
+                volumes:
+                        - /etc/localtime:/etc/localtime:ro
+                        - /etc/timezone:/etc/timezone:ro
+                        - /etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
+                        - /var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+                        - /var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+                        - /var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+                                                        #env_file:
+                                        #  - .env_agent
+                                        #environment:
+                        #  ZBX_SERVER_HOST: zabbix-server 
+                labels:
+                     com.zabbix.description: "Zabbix agent"
+                     com.zabbix.company: "Zabbix Docker CRMN"
+                     com.zabbix.component: "zabbix-agentd"
+                     com.zabbix.os: "alpine"
