@@ -15,4 +15,13 @@ git reset --soft HEAD~1
 ## git status
 git reset --hard HEAD~1
 
-teste do git fetch 2
+## cria repositório em um diretorio local
+git init --base <dir-server>
+
+## adicionar o repositório local como se fosse remoto no diretorio
+## de trabalho e atualiza-lo 
+git remove add origin <dir-server>
+git push origin master
+
+# entrar no <dir-server>
+git log
