@@ -25,3 +25,47 @@ git push origin master
 
 # entrar no <dir-server>
 git log
+
+
+### rebase
+inicializar um repo
+criar arquivo README com nome do projeto e fazer primeiro commit
+criar uma nova branch chamada "feature"
+criar um arquivo chamado "feature" com conteúdo "feature legal" e fazer um commit
+efetuar checkout da master
+na master criar um arquivo "master" com conteúdo "master da hora" e fazer um commit
+verificar a árvore com "git log --oneline --graph --all"
+efetuar checkout da branch "feature"
+efetuar o rebase na master com "git rebase master"
+verificar a árvore com "git log --oneline --graph --all"
+efetuar checkout da branch "master"
+efetuar o fast-forward da master com "git merge feature"
+verificar a árvore com "git log --oneline -- graph --all"
+verificar os arquivos no projeto com "ls -lha"
+
+### conflito no rebase
+inicializar um repo
+criar arquivo README com nome do projeto e fazer primeiro commit
+criar uma nova branch chamada "feature"
+criar um arquivo chamado "arquivo" com conteúdo "feature legal" e fazer um commit
+efetuar checkout da master
+na master criar um arquivo "arquivo" com conteúdo "master da hora" e fazer um commit
+verificar a árvore com "git log --oneline --graph --all"
+efetuar checkout da branch "feature"
+efetuar o rebase na master com "git rebase master"
+resolver o conflito editando o arquivo "arquivo"
+marcar o arquivo como resolvido com "git add arquivo"
+finalizar o rebase com "git rebase --continue"
+verificar a árvore com "git log --oneline --graph --all"
+efetuar checkout da branch "master"
+efetuar o fast-forward da master com "git merge feature"
+verificar a árvore com "git log --oneline -- graph --all"
+
+
+###rebase interativo
+iniciar a partir do repo do exercício anterior
+efetuar "git log --oneline --graph --all" para ver os commits
+efetuar rebase interativo a partir do primeiro commit com "git rebase --interactive <primeiro commit>"
+manter o primeiro commit e efetuar squash (s) do anterior
+editar a mensagem do commit mesclado e salvar
+verificar o novo commit com "git log"
