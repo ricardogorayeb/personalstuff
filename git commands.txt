@@ -26,6 +26,8 @@ git push origin master
 # entrar no <dir-server>
 git log
 
+#altera para a branch <branch>
+git switch <branch>
 
 ### rebase
 inicializar um repo
