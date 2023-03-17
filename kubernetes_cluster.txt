@@ -1,0 +1,137 @@
+vi /etc/apt/sources.list.d/docker.list
+	deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable
+
+curl https://releases.rancher.com/install-docker/20.10.sh | sh
+
+apt-get update && apt-get -y install docker-ce=$VERSION_STRING docker-ce-cli=$VERSION_STRING containerd.io docker-buildx-plugin docker-compose-plugin
+cat > /etc/docker/daemon.json <<EOF
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2",
+  "dns": ["172.20.5.160"]
+}
+EOF
+
+vi /etc/default/grub
+	GRUB_CMDLINE_LINUX_DEFAULT="cgroup_enable=memory cgroup_memory=1 systemd.unified_cgroup_hierarchy=0"
+update-grub && reboot
+
+
+sudo mkdir -p /etc/systemd/system/docker.service.d
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+cat > /etc/sysctl.d/k8s.conf << EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+
+cat > /etc/modules-load.d/k8s.conf << EOF
+br_netfilter
+ip_vs
+ip_vs_rr
+ip_vs_sh
+ip_vs_wrr
+nf_conntrack_ipv4
+EOF
+
+
+sudo apt-get update && sudo apt-get install -y apt-transport-https gnupg2
+
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+
+sudo echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+
+sudo apt-get update
+
+sudo apt install kubectl=1.24.11-00 kubeadm=1.24.11-00 kubelet=1.24.11-00
+sudo apt-mark hold kubelet kubectl kubeadm
+
+containerd config default | tee /etc/containerd/config.toml
+sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml  
+service containerd restart
+service kubelet restart  
+
+
+# kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=172.20.5.100:6443 --apiserver-advertise-address=172.20.5.100 --upload-certs
+
+	Your Kubernetes control-plane has initialized successfully!
+  "dns": ["172.20.5.160"]
+
+	To start using your cluster, you need to run the following as a regular user:
+
+	mkdir -p $HOME/.kube
+	sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+	sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+	Alternatively, if you are the root user, you can run:
+
+	export KUBECONFIG=/etc/kubernetes/admin.conf
+
+	You should now deploy a pod network to the cluster.
+	Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+	https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+	You can now join any number of the control-plane node running the following command on each as root:
+
+	kubeadm join 172.20.5.100:6443 --token 5618kl.1or89rag9o3j2emp \
+		--discovery-token-ca-cert-hash sha256:95828c9d9cfe3ffd0ec5aa97fdd7155dd1331a62e0521375fe37afc43e6cd631 \
+		--control-plane --certificate-key 63dc80ca2ce3de576a6510961871c5a5252aa54ffdf51f18e30dd4760b2c159f
+
+	Please note that the certificate-key gives access to cluster sensitive data, keep it secret!
+	As a safeguard, uploaded-certs will be deleted in two hours; If necessary, you can use
+	"kubeadm init phase upload-certs --upload-certs" to reload certs afterward.
+
+	Then you can join any number of worker nodes by running the following on each as root:
+
+	kubeadm join 172.20.5.100:6443 --token 5618kl.1or89rag9o3j2emp \
+		--discovery-token-ca-cert-hash sha256:95828c9d9cfe3ffd0ec5aa97fdd7155dd1331a62e0521375fe37afc43e6cd631 
+
+# kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+
+# cat /run/flannel/subnet.env
+	FLANNEL_NETWORK=10.240.0.0/16
+	FLANNEL_SUBNET=10.240.0.1/24
+	FLANNEL_MTU=1450
+	FLANNEL_IPMASQ=true
+
+
+kubectl label node teste-gorayeb kubernetes.io/role=master
+kubectl label node teste-gorayeb2 kubernetes.io/role=worker
+
+
+sudo kubeadm reset
+sudo systemctl enable docker
+sudo systemctl enable kubelet
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+sudo netstat -lnp | grep 1025
+sudo rm -rf /etc/kubernetes/kubelet.conf /etc/kubernetes/pki/ca.crt
+
+
+helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+helm install cert-manager jetstack/cert-manager   --namespace cert-manager   --create-namespace   --version v1.7.1
+kubectl create namespace cattle-system
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml
+kubectl get pods -n cert-manager
+helm repo add jetstack https://charts.jetstack.io
+helm pull rancher rancher-latest/rancher
+helm upgrade --install cert-manager jetstack/cert-manager   --namespace cert-manager   --create-namespace   --version v1.7.1
+helm upgrade --install rancher /tmp/rancher/   --namespace cattle-system   --set hostname=rancher.mn.sipam.gov.br   --set replicas=1 
+
+kubeadm reset
+systemctl stop kubelet
+systemctl stop docker
+rm -rf /var/lib/cni/
+rm -rf /var/lib/kubelet/*
+rm -rf /etc/cni/
+ip link set cni0 down
+ip link set flannel.1 down
+ip link set docker0 down
+systemctl start kubelet
+systemctl start docker
