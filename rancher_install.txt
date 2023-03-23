@@ -29,3 +29,9 @@ docker logs `docker container ls | grep rancher | awk '{ print $1 }'`  2>&1 | gr
 
 
 
+#Registry
+ - need to add gitlab certificates to docker host running gitlab-runner on
+   /etc/docker/certs.d/
+ - restart docker
+ - enable it on /etc/gitlab/gitlab.rb
+ - gitlab-ctl reconfigure
