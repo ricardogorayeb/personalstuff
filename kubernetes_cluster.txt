@@ -1,5 +1,4 @@
-vi /etc/apt/sources.list.d/docker.list
-	deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable
+## Install Docker 20.10
 
 curl https://releases.rancher.com/install-docker/20.10.sh | sh
 
