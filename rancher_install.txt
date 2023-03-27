@@ -1,6 +1,5 @@
 ## Install Docker 20.10 (https://www.suse.com/assets/v2.5.16-Support-Matrix.pdf)
 
-curl https://releases.rancher.com/install-docker/20.10.sh | sh
 
 
 ## Setup sysctl options for Docker
@@ -26,6 +25,12 @@ docker run -d --restart=unless-stopped \
 docker logs `docker container ls | grep rancher | awk '{ print $1 }'`  2>&1 | grep "Bootstrap Password:"
 
 
+openssl req -new -x509 -days 3650 -key ca.key -out ca.crt
+openssl x509 -req -extfile <(printf "subjectAltName=DNS:gitlab.mn.sipam.gov.br") -days 3650 -in gitlab.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out gitlab.crt
+openssl x509 -req -extfile <(printf "subjectAltName=DNS:gitlab.mn.sipam.gov.br") -days 3650 -in gitlab.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out gitlab.crt
+openssl x509 -req -extfile <(printf "subjectAltName=DNS:gitlab.mn.sipam.gov.br") -days 3650 -in gitlab.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out gitlab.crt
+
+
 
 
 
@@ -35,3 +40,68 @@ docker logs `docker container ls | grep rancher | awk '{ print $1 }'`  2>&1 | gr
  - restart docker
  - enable it on /etc/gitlab/gitlab.rb
  - gitlab-ctl reconfigure
+
+# Docker Runner Install
+curl -LJO "https://gitlab-runner-downloads.s3.amazonaws.com/latest/deb/gitlab-runner_amd64.deb"
+dpkg -i gitlab-runner_amd64.deb
+useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/bash
+gitlab-runner register --url https://gitlab.mn.sipam.gov.br/ --registration-token $REGISTRATION_TOKEN
+chmod 666 /var/run/docker.sock
+
+  To troubleshoot Shell profile loading error , check /home/gitlab-runner/.bash_logout. For example, if the .bash_logout file has a script section like the following, comment it out and restart the pipeline:
+
+  if [ "$SHLVL" = 1 ]; then
+    [ -x /usr/bin/clear_console ] && /usr/bin/clear_console -q
+  fi
+
+
+# Gitlab + Kubernetes Cluster
+helm repo add gitlab https://charts.gitlab.io
+helm repo update
+helm upgrade --install dev gitlab/gitlab-agent \
+    --namespace gitlab-agent-dev \
+    --create-namespace \
+    --set image.tag=v15.10.0 \
+    --set config.token=cVKaVobpGsxRDVRzkejgiMzJxLPXn7vCtwgwCVdM2iRn77M2NA \
+    --set config.kasAddress=wss://gitlab.mn.sipam.gov.br/-/kubernetes-agent/
+
+helm repo add gitlab https://charts.gitlab.io
+helm repo update
+helm upgrade --install prod gitlab/gitlab-agent \
+    --namespace gitlab-agent-prod \
+    --create-namespace \
+    --set image.tag=v15.10.0 \
+    --set config.token=a8C_skA_zq-NMVuzjCrLo5CksZygxz-dToF3PgxDVuxpt9H8kA \
+    --set config.kasAddress=wss://gitlab.mn.sipam.gov.br/-/kubernetes-agent/
+
+
+
+
+kubectl create secret generic 'ca' --namespace gitlab-kubernetes-agent --from-file="${YOUR_CA}.crt"
+
+
+docker run --pull=always --rm  registry.gitlab.com/gitlab-org/cluster-integration/gitlab-agent/cli:stable generate   --agent-token="cVKaVobpGsxRDVRzkejgiMzJxLPXn7vCtwgwCVdM2iRn77M2NA"  --kas-address="wss://gitlab.mn.sipam.gov.br/-/kubernetes-agent/"  --agent-version stable  --namespace gitlab-agent-prod >kas.yaml
+
+  In the kind: Deployment deployment section add the following things:
+
+  In spec:template:spec:containers:args append - --ca-cert-file=/certs/${YOUR_CA}.crt - expand ${YOUR_CA} here manually
+  In spec:template:spec:contaiers:volumeMounts add a new block:
+
+  - name: custom-certs
+    readOnly: true
+    mountPath: /certs
+
+
+
+  In spec:template:spec:volumes add a new block:
+
+  - name: custom-certs
+    secret:
+      secretName: ca
+
+
+
+
+
+  Only the apply that file using kubectl apply -f kas.yaml
+  kubectl apply -f kas.yaml
