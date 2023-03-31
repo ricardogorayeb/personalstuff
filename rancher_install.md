@@ -34,14 +34,14 @@ openssl x509 -req -extfile <(printf "subjectAltName=DNS:gitlab.mn.sipam.gov.br")
 
 
 
-#Registry
+# Registry
  - need to add gitlab certificates to docker host running gitlab-runner on
    /etc/docker/certs.d/
  - restart docker
  - enable it on /etc/gitlab/gitlab.rb
  - gitlab-ctl reconfigure
 
-# Docker Runner Install
+# GitLab Runner Install
 curl -LJO "https://gitlab-runner-downloads.s3.amazonaws.com/latest/deb/gitlab-runner_amd64.deb"
 dpkg -i gitlab-runner_amd64.deb
 useradd --comment 'GitLab Runner' --create-home gitlab-runner --shell /bin/bash
@@ -55,53 +55,14 @@ chmod 666 /var/run/docker.sock
   fi
 
 
-# Gitlab + Kubernetes Cluster
-helm repo add gitlab https://charts.gitlab.io
-helm repo update
-helm upgrade --install dev gitlab/gitlab-agent \
-    --namespace gitlab-agent-dev \
-    --create-namespace \
-    --set image.tag=v15.10.0 \
-    --set config.token=cVKaVobpGsxRDVRzkejgiMzJxLPXn7vCtwgwCVdM2iRn77M2NA \
-    --set config.kasAddress=wss://gitlab.mn.sipam.gov.br/-/kubernetes-agent/
-
-helm repo add gitlab https://charts.gitlab.io
-helm repo update
-helm upgrade --install prod gitlab/gitlab-agent \
-    --namespace gitlab-agent-prod \
-    --create-namespace \
-    --set image.tag=v15.10.0 \
-    --set config.token=a8C_skA_zq-NMVuzjCrLo5CksZygxz-dToF3PgxDVuxpt9H8kA \
-    --set config.kasAddress=wss://gitlab.mn.sipam.gov.br/-/kubernetes-agent/
 
 
+### Failed to pull image certificate signed by unknown authority when pull from a private registry.
+
+  copy your domain .crt file to /etc/docker/<your_domain>:<your_domain_port>/
+  copy your domain .crt file to /usr/local/share/ca-certificates/
+  update-ca-certificates
+  service docker restart
+  service containerd restart
 
 
-kubectl create secret generic 'ca' --namespace gitlab-kubernetes-agent --from-file="${YOUR_CA}.crt"
-
-
-docker run --pull=always --rm  registry.gitlab.com/gitlab-org/cluster-integration/gitlab-agent/cli:stable generate   --agent-token="cVKaVobpGsxRDVRzkejgiMzJxLPXn7vCtwgwCVdM2iRn77M2NA"  --kas-address="wss://gitlab.mn.sipam.gov.br/-/kubernetes-agent/"  --agent-version stable  --namespace gitlab-agent-prod >kas.yaml
-
-  In the kind: Deployment deployment section add the following things:
-
-  In spec:template:spec:containers:args append - --ca-cert-file=/certs/${YOUR_CA}.crt - expand ${YOUR_CA} here manually
-  In spec:template:spec:contaiers:volumeMounts add a new block:
-
-  - name: custom-certs
-    readOnly: true
-    mountPath: /certs
-
-
-
-  In spec:template:spec:volumes add a new block:
-
-  - name: custom-certs
-    secret:
-      secretName: ca
-
-
-
-
-
-  Only the apply that file using kubectl apply -f kas.yaml
-  kubectl apply -f kas.yaml

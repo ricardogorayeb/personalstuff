@@ -2,8 +2,7 @@
 
 curl https://releases.rancher.com/install-docker/20.10.sh | sh
 
-VERSION_STRING=5:18.09.9~3-0~ubuntu-bionic
-apt-get update && apt-get -y install docker-ce=$VERSION_STRING docker-ce-cli=$VERSION_STRING containerd.io docker-buildx-plugin docker-compose-plugin
+
 cat > /etc/docker/daemon.json <<EOF
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
@@ -75,17 +74,18 @@ service containerd restart
 service kubelet restart  
 
 
-# kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=172.20.5.101:6443 --apiserver-advertise-address=172.20.5.101 --node-name teste-gorayeb-master1 --upload-certsteste-gorayeb-worker1
-
-
-# mkdir -p /run/flannel
-# cat > /run/flannel/subnet.env << EOF
+mkdir -p /run/flannel
+cat > /run/flannel/subnet.env << EOF
 	FLANNEL_NETWORK=10.240.0.0/16
 	FLANNEL_SUBNET=10.240.0.1/24
 	FLANNEL_MTU=1450
 	FLANNEL_IPMASQ=true
 EOF
-# kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+
+kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint=172.20.5.101:6443 --apiserver-advertise-address=172.20.5.101 --node-name teste-gorayeb-master1 --upload-certsteste-gorayeb-worker1
+
+
+kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
 
 kubectl label node teste-gorayeb kubernetes.io/role=master
 kubectl label node teste-gorayeb2 kubernetes.io/role=worker
@@ -96,7 +96,6 @@ sudo systemctl enable docker
 sudo systemctl enable kubelet
 sudo systemctl daemon-reload
 sudo systemctl restart docker
-sudo netstat -lnp | grep 1025
 sudo rm -rf /etc/kubernetes/kubelet.conf /etc/kubernetes/pki/ca.crt
 
 
@@ -127,5 +126,10 @@ rm -rf /etc/kubernetes/ /var/lib/etcd
 systemctl start kubelet
 systemctl start docker
 
+### Taint/Untaint Nodes
 kubectl describe node teste-gorayeb-master1 | grep Taints
 kubectl taint nodes teste-gorayeb-master1 node-role.kubernetes.io/master:NoSchedule-
+kubectl taint nodes teste-gorayeb-master1 node-role.kubernetes.io/control-plane:NoSchedule-
+kubectl taint nodes teste-gorayeb-master1 node-role.kubernetes.io/master:NoSchedule
+kubectl taint nodes teste-gorayeb-master1 node-role.kubernetes.io/master:NoSchedule-
+kubectl taint nodes teste-gorayeb-master1 node-role.kubernetes.io/master:NoSchedule
