@@ -1,0 +1,8 @@
+#!/bin/bash
+### VNC Server startup script for xfce
+### Need to rename to xstartup and copy it to ~/.vnc/xstartup
+#
+PATH=/usr/bin:/usr/sbin
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+exec startxfce4 
