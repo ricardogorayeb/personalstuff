@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#Verifica se o script está executando a mais de 7200segundos e 
+# mata o processo caso seja verdade
+
+ps -eo pid,etimes,cmd | awk '$2 > 7200 && $3 == "/home/muran/Scripts_FTP_Radar/checkVol.sh"' | xargs kill -9
+
 # Controle de execuções simultâneas
 # Evita que haja mais de uma instância deste script executando.
 
@@ -50,7 +55,6 @@ for ARQFULL in $(ls $DIRVMET/*.mvol | tail -n850);do
 	ARQ=`basename $ARQFULL`
 	NUMVOL=$(strings $DIRVMET/$ARQ | grep scan[0-9]|wc -l)
 	echo "QTD ARQS:"$NUMVOL
-
 	if [ $NUMVOL -eq 17 ]; then
 		INVALIDO=0
 		NOMEVOL=$( $BASENAME $ARQ | sed -r 's/(.*)\--(.{2})\:(.{2})\:(.*\..*)/\1\_\2\3/')
@@ -59,7 +63,7 @@ for ARQFULL in $(ls $DIRVMET/*.mvol | tail -n850);do
 		DIA=$(echo ${NOMEVOL} | cut -c9,10)
 		if [ -s $DIRBASEVMET/$ANO/$MES/$DIA/${NOMEVOL}.mvol.bz2 ]; then
 			echo "ARQUIVO EXISTE" $NOMEVOL
-			mv $DIRVMET/$ARQ $DIRVMET/0movidos/$ARQ
+			#mv $DIRVMET/$ARQ $DIRVMET/0movidos/$ARQ
 		else	
 			echo "ORGANIZANDO.. ARQUIVO VMET " $ARQ
 			if [ ! -d $DIRBASEVMET/$ANO ]; then mkdir $DIRBASEVMET/$ANO; fi
@@ -71,6 +75,8 @@ for ARQFULL in $(ls $DIRVMET/*.mvol | tail -n850);do
 			bzip2 -f $DIRBASEVMET/$ANO/$MES/$DIA/${NOMEVOL}.mvol
 		fi
 	else
+		echo $ARQ
+		echo "entrou aqui ... ${NUMVOL}"
 		INVALIDO=1
 	fi
 done
@@ -105,9 +111,10 @@ for ARQ in $(ls $DIRXPPI | tail -n350);do
         fi
 done
 
-rsync -avzpr --remove-source-files --exclude-from=/home/muran/exclude.txt  --files-from=<(ls $DIRBASEXPPI/ | tail -n350) $DIRBASEXPPI/ $DIRRSYNCXPPI 
+rsync -avzr --no-t --remove-source-files --exclude-from=/home/muran/exclude.txt  --files-from=<(ls $DIRBASEXPPI/ | tail -n350) $DIRBASEXPPI/ $DIRRSYNCXPPI 
 
-$ZABBIXSENDER -z 172.20.5.144 -s "srvcrmnradproc1p" -k status_num_elevacoes_$LOCAL_RADAR -o `echo $INVALIDO`
+echo "invalido={$INVALIDO}"
+$ZABBIXSENDER  -z 172.20.5.144 -s "srvcrmnradproc1p" -k status_num_elevacoes_$LOCAL_RADAR -o `echo $INVALIDO`
 
 # Remove arquivo de trava
 rm -f "${LOCKFILE}";
