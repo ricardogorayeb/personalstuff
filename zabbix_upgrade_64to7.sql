@@ -1,0 +1,36 @@
+###Some tasks need on database to upgrade zabbix from 6.4 to 7.0.3
+
+set search_path to zabbix;
+drop index problem_4;
+alter table proxy alter column proxyid type bigint;
+alter table hosts alter column proxyid type bigint;
+alter table drules alter column proxyid type bigint;
+alter table autoreg_host alter column proxyid type bigint;
+alter table task alter column proxyid type bigint;
+drop index dashboard_user_2;
+drop index dashboard_usrgrp_2;
+drop index event_suppress_4;
+drop index group_discovery_1;
+drop index group_prototype_2;
+drop index host_discovery_1;
+drop index host_discovery_2;
+drop index hosts_7;
+drop index interface_discovery_1;
+drop index report_2;
+drop index report_3;
+drop index report_user_2;
+drop index report_user_3;
+drop index report_usrgrp_2;
+drop index report_usrgrp_3;
+drop index sysmaps_4;
+drop index sysmap_element_trigger_2;
+drop index sysmap_user_2;
+drop index sysmap_usrgrp_2;
+drop index tag_filter_1;
+drop index tag_filter_2;
+drop index task_2;
+drop index users_3;
+drop index auditlog_4;
+set search_path to public;
+drop trigger items_name_upper_insert on items;
+drop trigger items_name_upper_update on items;
