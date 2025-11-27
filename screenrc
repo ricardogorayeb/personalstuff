@@ -1,0 +1,5 @@
+caption always "%H - %w"
+startup_message off
+nethack on
+defscrollback 16384
+term screen-256color
