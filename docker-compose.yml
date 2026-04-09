@@ -14,16 +14,16 @@ services:
                         -  /var/log/snmptrap/snmptrap.log:/var/log/snmptrap/snmptrap.log:rw 
                 environment:
                         ZBX_HOSTNAME: zabbix-server
-                        #ZBX_LISTENIP: 172.20.5.144
+                        #ZBX_LISTENIP: 
                         ZBX_STARTPOLLERS: 60
                         ZBX_IPMIPOLLERS: 20
                         ZBX_STARTPOLLERSUNREACHABLE: 20
                         ZBX_STARTTRAPPERS: 50
                         ZBX_STARTPINGERS: 40
                         ZBX_STARTDISCOVERERS: 40
-                        #ZBX_JAVAGATEWAY: 172.20.5.144
+                        #ZBX_JAVAGATEWAY: 
                         ZBX_JAVAGATEWAYPORT: 10052
-                        DB_SERVER_HOST: 172.20.5.144 
+                        DB_SERVER_HOST: 
                         ZBX_STARTTRAPPERS: 5
                         ZBX_STARTDBSYNCERS: 10
                         ZBX_CACHESIZE: 1G
@@ -31,8 +31,8 @@ services:
                         ZBX_HISTORYCACHESIZE: 512M
                         ZBX_HISTORYINDEXCACHESIZE: 512M
                         ZBX_DEBUGLEVEL: 3
-                        MYSQL_USER: root
-                        MYSQL_PASSWORD: microlog
+                        MYSQL_USER: 
+                        MYSQL_PASSWORD: 
         
         zabbix-frontend:
                 restart: always
@@ -46,12 +46,12 @@ services:
                 links:
                         - zabbix-server:zabbix-server
                 environment:
-                        DB_SERVER_HOST: 172.20.5.144
-                        MYSQL_USER: root
-                        MYSQL_PASSWORD: microlog
-                        #ZBX_SERVER_HOST: 172.20.5.144
+                        DB_SERVER_HOST: 
+                        MYSQL_USER: 
+                        MYSQL_PASSWORD: 
+                        #ZBX_SERVER_HOST: 
                         PHP_TZ: America/Manaus
-                        ZBX_SERVER_NAME: "Zabbix Docker CRMN"
+                        ZBX_SERVER_NAME: "Zabbix Docker "
  
         zabbix-agent:
                 image: zabbix/zabbix-agent:alpine-5.4-latest
@@ -72,6 +72,6 @@ services:
                         #  ZBX_SERVER_HOST: zabbix-server 
                 labels:
                      com.zabbix.description: "Zabbix agent"
-                     com.zabbix.company: "Zabbix Docker CRMN"
+                     com.zabbix.company: "Zabbix Docker "
                      com.zabbix.component: "zabbix-agentd"
                      com.zabbix.os: "alpine"

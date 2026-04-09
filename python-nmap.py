@@ -1,6 +1,6 @@
 import nmap
 nm = nmap.PortScanner()
-nm.scan('172.20.5.144')
+nm.scan('')
 for host in nm.all_hosts():
     print('----------------------------------------------------')
     print('Host : %s (%s)' % (host, nm[host].hostname()))

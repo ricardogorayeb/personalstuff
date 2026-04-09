@@ -11,7 +11,7 @@ cat > /etc/docker/daemon.json <<EOF
     "max-size": "100m"
   },
   "storage-driver": "overlay2",
-  "dns": ["172.20.5.160"]
+  "dns": [""]
 }
 EOF
 
