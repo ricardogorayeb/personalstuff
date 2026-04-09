@@ -11,3 +11,5 @@ sed -i -e 's/-Xms2g -Xmx2g/-Xms3g -Xmx3g/' bin/graylogctl
 ssh -L 8000:172.22.42.66:4039 root@172.22.42.66
 
 puppet agent --configprint all|grep -i runinterval (Puppet agent run interval on clients)
+
+sudo hydra -L users.txt -P /usr/share/wordlists/rockyou.txt -vV ftp://<ip>>:10021
