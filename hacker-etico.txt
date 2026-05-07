@@ -1,0 +1,18 @@
+SpiderFoot
+SpiderFoot é um scanner OSINT automatizado. Está incluído com Kali. O SpiderFoot consulta mais de 1000 fontes de informação aberta e apresenta os resultados em uma GUI fácil de usar. O SpiderFoot também pode ser executado a partir de um console. O SpiderFoot seleciona sua verificação com uma das seguintes opções:
+
+Nomes de domínio
+endereços IP
+endereços de sub-rede
+Números de Sistema Autônomo (ASN)
+Endereços de e-mail
+números de telefone
+nomes pessoais
+SpiderFoot oferece a opção de escolher verificações com base em caso de uso, dados necessários e por módulo. Os casos de uso são:
+
+Todos – Obtenha todas as informações possíveis sobre o alvo. Este caso de uso pode levar muito tempo para ser concluído.
+Pegada de Rede – Compreenda o perímetro de rede do alvo, identidades associadas e outras informações que são fornecidas pelo extenso web crawling e uso do mecanismo de pesquisa.
+Investigar – Alvos que você suspeita de comportamento malicioso. Levantamento de informações, buscas na lista negra e outras fontes que relatarem sites maliciosos serão retornadas.
+Passivo – Esse tipo de verificação é usado se é indesejável para o alvo suspeitar que ele está sendo analisado. Essa é uma forma de OSINT passivo.
+
+
