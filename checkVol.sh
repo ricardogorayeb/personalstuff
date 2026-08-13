@@ -22,15 +22,14 @@ DIRVMET_INVALIDOS="$DIRVMET/0invalidos"
 
 DIRXPPI_VALIDOS="$DIRXPPI/0movidos"
 DIRXPPI_INVALIDOS="$DIRXPPI/0invalidos"
-# Define your directories in an array
+
 dirs=("$DIRBASEVMET" "$DIRBASEXPPI" "$DIRVMET_VALIDOS" "$DIRVMET_INVALIDOS" "$DIRXPPI_VALIDOS" "$DIRXPPI_INVALIDOS")
 
 for dir in "${dirs[@]}"; do
     if [ ! -d "$dir" ]; then
-    	mkdir -p $dir
+    	mkdir -p "$dir"
     fi
 done
-
 
 while true; do
 	INVALIDO=0
@@ -40,7 +39,7 @@ while true; do
 	for ARQFULL in $(ls $DIRVMET/*.mvol 2>/dev/null | tail -n850); do
 		ARQ=$($BASENAME "$ARQFULL")
 		
-		# Ignora o arquivo se ainda estiver aberto por outro processo (em gravação)
+		# Trava 1: Ignora leitura se o descritor estiver alocado
 		if fuser -s "$ARQFULL"; then
 			continue
 		fi
@@ -67,10 +66,17 @@ while true; do
 				$BZIP2 -f "$DIRBASEVMET/$ANO/$MES/$DIA/${NOMEVOL}.mvol"
 			fi
 		else
-			echo "$ARQ"
-			echo "Movendo arquivo VMET invalido ... ${NUMVOL}"
-			INVALIDO=1
-			mv $ARQFULL $DIRVMET_INVALIDOS/$ARQ
+			# Condição de descarte temporal: Mais de 600s sem gravação e incompleto
+			HORA_ATUAL=$(date +%s)
+			HORA_MOD_ARQ=$(stat -c %Y "$ARQFULL")
+			DIFERENCA=$((HORA_ATUAL - HORA_MOD_ARQ))
+
+			if [ "$DIFERENCA" -gt 600 ]; then
+				echo "$ARQ"
+				echo "Movendo arquivo VMET invalido (inativo há ${DIFERENCA}s) ... ${NUMVOL}"
+				INVALIDO=1
+				mv "$ARQFULL" "$DIRVMET_INVALIDOS/$ARQ"
+			fi
 		fi
 	done
 	   
@@ -81,7 +87,7 @@ while true; do
 	for ARQFULL in $(ls $DIRXPPI/*.mvol 2>/dev/null | tail -n350); do
 		ARQ=$($BASENAME "$ARQFULL")
 		
-		# Ignora o arquivo se ainda estiver aberto por outro processo (em gravação)
+		# Trava 1: Ignora leitura se o descritor estiver alocado
 		if fuser -s "$ARQFULL"; then
 			continue
 		fi
@@ -97,7 +103,7 @@ while true; do
 
 			if [ -s "$DIRBASEXPPI/$ANO/$MES/$DIA/${NOMEVOL}_400.mvol.bz2" ]; then
 				echo "ARQUIVO EXISTE $NOMEVOL"
-				mv "$ARQFULL" "$DIRXPPI/0movidos/$ARQ"
+				mv "$ARQFULL" "$DIRXPPI_VALIDOS/$ARQ"
 			else
 				echo "ORGANIZANDO.. ARQUIVO XPPI $ARQ"
 				mkdir -p "$DIRBASEXPPI/$ANO/$MES/$DIA"
@@ -108,9 +114,15 @@ while true; do
 				$BZIP2 -f "$DIRBASEXPPI/$ANO/$MES/$DIA/${NOMEVOL}_400.mvol"
 			fi
 		else
-			echo "movendo arquivo invalido ... ${NUMVOL}"
-			mv $ARQFULL $DIRXPPI_INVALIDOS/$ARQ
+			# Condição de descarte temporal: Mais de 600s sem gravação e incompleto
+			HORA_ATUAL=$(date +%s)
+			HORA_MOD_ARQ=$(stat -c %Y "$ARQFULL")
+			DIFERENCA=$((HORA_ATUAL - HORA_MOD_ARQ))
 
+			if [ "$DIFERENCA" -gt 600 ]; then
+				echo "movendo arquivo XPPI invalido (inativo há ${DIFERENCA}s) ... ${NUMVOL}"
+				mv "$ARQFULL" "$DIRXPPI_INVALIDOS/$ARQ"
+			fi
 		fi
 	done
 
