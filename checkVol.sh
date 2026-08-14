@@ -79,9 +79,14 @@ while true; do
 			fi
 		fi
 	done
-	   
-	$RSYNC -avzr --no-t --remove-source-files --exclude-from=/home/muran/exclude.txt --files-from=<(ls $DIRBASEVMET/ 2>/dev/null | tail -n850) $DIRBASEVMET/ $DIRRSYNCVMET 
+	
+	# Verifica se há arquivos regulares aguardando no diretório base
+	QTD_ARQS_VMET=$(find $DIRBASEVMET/ -type f | wc -l)
 
+	if [ "$QTD_ARQS_VMET" -gt 0 ]; then
+    	$RSYNC -avzr --no-t --remove-source-files --exclude-from=/home/muran/exclude.txt --files-from=<(ls $DIRBASEVMET/ 2>/dev/null | tail -n850) $DIRBASEVMET/ $DIRRSYNCVMET 
+	fi
+	
 	# SCAN XPPI
 	echo "CHECANDO SCAN XPPI"
 	for ARQFULL in $(ls $DIRXPPI/*.mvol 2>/dev/null | tail -n350); do
@@ -126,11 +131,13 @@ while true; do
 		fi
 	done
 
-	$RSYNC -avzr --no-t --remove-source-files --exclude-from=/home/muran/exclude.txt --files-from=<(ls $DIRBASEXPPI/ 2>/dev/null | tail -n350) $DIRBASEXPPI/ $DIRRSYNCXPPI 
+		QTD_ARQS_XPPI=$(find $DIRBASEXPPI/ -type f | wc -l)
+
+	if [ "$QTD_ARQS_XPPI" -gt 0 ]; then
+    	$RSYNC -avzr --no-t --remove-source-files --exclude-from=/home/muran/exclude.txt --files-from=<(ls $DIRBASEXPPI/ 2>/dev/null | tail -n850) $DIRBASEXPPI/ $DIRRSYNCXPPI 
+	fi
 
 	echo "invalido={$INVALIDO}"
-
-	# $ZABBIXSENDER -z 172.20.5.144 -s "srvcrmnradproc1p" -k status_num_elevacoes_$LOCAL_RADAR -o $INVALIDO
 
 	sleep 60 
 done

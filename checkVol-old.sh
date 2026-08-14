@@ -115,7 +115,5 @@ rsync -avzr --no-t --remove-source-files --exclude-from=/home/muran/exclude.txt 
 
 echo "invalido={$INVALIDO}"
 
-#$ZABBIXSENDER  -z 172.20.5.144 -s "srvcrmnradproc1p" -k status_num_elevacoes_$LOCAL_RADAR -o `echo $INVALIDO`
-
 # Remove arquivo de trava
 rm -f "${LOCKFILE}";
