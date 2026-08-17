@@ -66,12 +66,12 @@ while true; do
 				$BZIP2 -f "$DIRBASEVMET/$ANO/$MES/$DIA/${NOMEVOL}.mvol"
 			fi
 		else
-			# Condição de descarte temporal: Mais de 600s sem gravação e incompleto
+			# Condição de descarte temporal: Mais de 3600s sem gravação e incompleto
 			HORA_ATUAL=$(date +%s)
 			HORA_MOD_ARQ=$(stat -c %Y "$ARQFULL")
 			DIFERENCA=$((HORA_ATUAL - HORA_MOD_ARQ))
 
-			if [ "$DIFERENCA" -gt 600 ]; then
+			if [ "$DIFERENCA" -gt 3600 ]; then
 				echo "$ARQ"
 				echo "Movendo arquivo VMET invalido (inativo há ${DIFERENCA}s) ... ${NUMVOL}"
 				INVALIDO=1
@@ -119,12 +119,12 @@ while true; do
 				$BZIP2 -f "$DIRBASEXPPI/$ANO/$MES/$DIA/${NOMEVOL}_400.mvol"
 			fi
 		else
-			# Condição de descarte temporal: Mais de 600s sem gravação e incompleto
+			# Condição de descarte temporal: Mais de 3600s sem gravação e incompleto
 			HORA_ATUAL=$(date +%s)
 			HORA_MOD_ARQ=$(stat -c %Y "$ARQFULL")
 			DIFERENCA=$((HORA_ATUAL - HORA_MOD_ARQ))
 
-			if [ "$DIFERENCA" -gt 600 ]; then
+			if [ "$DIFERENCA" -gt 3600 ]; then
 				echo "movendo arquivo XPPI invalido (inativo há ${DIFERENCA}s) ... ${NUMVOL}"
 				mv "$ARQFULL" "$DIRXPPI_INVALIDOS/$ARQ"
 			fi
